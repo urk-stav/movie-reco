@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import requests
 import _pickle as pickle
 from bs4 import BeautifulSoup
@@ -17,21 +18,57 @@ YEAR_CUTOFF = 1980
 
 
 def _get_yearly_film_url_for_country(c):
+    """urls for films by year for country c"""
     r = _requests(f'{URL}/wiki/{c}', request_store)
     soup = BeautifulSoup(r.content, 'html.parser')
     hrefs = soup.find_all('a')
-    country = c.split('_')[2]
     list_of_country = set()
+    country = '_'.join(c.split('_')[2:-1])
+    txt = f'/List_of_{country}_films_of_'
     for b in hrefs:
         if 'href' in b.attrs:
             href = b.attrs['href']
-            txt = f'/List_of_{country}_films_of_'
             if txt in href:
                 year = re.findall('\d{4}', href)[0]
                 if int(year) > YEAR_CUTOFF:
                     list_of_country.update({href})
 
     return list_of_country
+
+
+def _get_movie_info(r):
+    """movie info from wiki table for a country for a year"""
+    soup = BeautifulSoup(r.content, 'html.parser')
+    tables = soup.findAll("table", {"class": 'wikitable'})
+    movie_infos = []
+    n_films = 0
+    for table in tables:
+        if 'title' in table.find_all('th')[0].text.strip().lower() or \
+            'title' in table.find_all('th')[1].text.strip().lower():
+            columns = [th.text.strip() for th in table.find_all('th', table)]
+            for i, c in enumerate(columns):
+                if 'title' in c.lower():
+                    title_ix = i
+                    break
+            trs = table.find_all('tr')
+            for tr in trs:
+                tds = [td for td in tr.find_all('td')]
+                texts = [td.text.strip() for td in tds]
+                if len(tds) == len(columns) or len(tds) == len(columns) - 1:
+                    info  = dict(zip(columns[:len(tds)], texts))
+                    hrefs = tds[title_ix].find_all('a')
+                    if hrefs:
+                        info['url'] = hrefs[0]['href']
+                        movie_infos.append(info)
+                        n_films += 1
+        else:
+            _err_print('Film table not found')
+
+    if n_films:
+        print(f'{n_films} films found!')
+    else:
+        _err_print(f'No films found')
+    return movie_infos
 
 
 if __name__ == '__main__':
@@ -70,13 +107,22 @@ if __name__ == '__main__':
     common_country_list = set(manual_country_list).intersection(lists_by_country)
     # film list by country
     print('Getting films for ...')
+    all_movie_info = {}
     for c in common_country_list:
         print(c)
         print('=' * len(c))
+        all_movie_info[c] = {}
         list_of_country_by_year = _get_yearly_film_url_for_country(c)
         for url in list_of_country_by_year:
             r = _requests(f'{URL}{url}', request_store)
+            movie_infos = _get_movie_info(r)
+            if movie_infos:
+                all_movie_info[c][url] = movie_infos
 
+    # write out movie infos
+    with open('data/wiki_movie_infos.json', 'w') as f:
+        json.dump(all_movie_info, f)
+    _print('Written movie infos')
     
     # write to request store
     with open('data/request_store.pkl', 'wb') as f:
