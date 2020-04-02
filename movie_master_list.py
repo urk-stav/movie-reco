@@ -12,22 +12,12 @@ URL = 'https://en.wikipedia.org'
 COUNTRIES = ['American', 'Argentine', 'Australian', 'Brazilian',
              'British', 'Chinese', 'Czech', 'Danish', 'Dutch',
              'French', 'German', 'Bollywood', 'Iranian',
-             'Israeli', 'Italian', 'South_Korean', 'Mexican',
-             'Soviet', 'Spanish', 'Swedish', 'Tamil-language']
+             'Israeli', 'Italian', 'Japanese', 'South_Korean', 'Mexican',
+             'Soviet', 'Spanish', 'Swedish', 'Tamil-language',
+             'animated_feature']
 YEAR_CUTOFF = 1980
-MONTHS = \
-['JANUARY',
- 'FEBRUARY',
- 'MARCH',
- 'APRIL',
- 'MAY',
- 'JUNE',
- 'JULY',
- 'AUGUST',
- 'SEPTEMBER',
- 'OCTOBER',
- 'NOVEMBER',
- 'DECEMBER']
+MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY',
+          'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
 
 
 def _get_yearly_film_url_for_country(c):
