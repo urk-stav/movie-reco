@@ -15,6 +15,19 @@ COUNTRIES = ['American', 'Argentine', 'Australian', 'Brazilian',
              'Israeli', 'Italian', 'South_Korean', 'Mexican',
              'Soviet', 'Spanish', 'Swedish', 'Tamil-language']
 YEAR_CUTOFF = 1980
+MONTHS = \
+['JANUARY',
+ 'FEBRUARY',
+ 'MARCH',
+ 'APRIL',
+ 'MAY',
+ 'JUNE',
+ 'JULY',
+ 'AUGUST',
+ 'SEPTEMBER',
+ 'OCTOBER',
+ 'NOVEMBER',
+ 'DECEMBER']
 
 
 def _get_yearly_film_url_for_country(c):
@@ -42,10 +55,20 @@ def _get_movie_info(r):
     tables = soup.findAll("table", {"class": 'wikitable'})
     movie_infos = []
     n_films = 0
+    columns = []
     for table in tables:
         if 'title' in table.find_all('th')[0].text.strip().lower() or \
-            'title' in table.find_all('th')[1].text.strip().lower():
-            columns = [th.text.strip() for th in table.find_all('th', table)]
+        'title' in table.find_all('th')[1].text.strip().lower():
+            columns = [th.text.strip() for th in table.find_all('th')]
+        elif table.find_all('td') and \
+           ('title' in table.find_all('td')[0].text.strip().lower() or \
+           'title' in table.find_all('td')[1].text.strip().lower()):
+            for td in table.find_all('td'):
+                if td.find('a'):
+                    break
+                columns.append(td.text.strip())
+        if columns:
+            columns = [c for c in columns if c not in MONTHS]
             for i, c in enumerate(columns):
                 if 'title' in c.lower():
                     title_ix = i
