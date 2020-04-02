@@ -34,7 +34,11 @@ def _get_infobox_data(r):
     for i, row in enumerate(rows):
         if i == 0:
             # Title always appears at the top of the table
-            infobox['title'] = row.find('th').text
+            try:
+                infobox['title'] = row.find('th').text
+            except:
+                continue
+                
         elif row.find('a',{'class':'image'}):
             # Image, if present, follow the title
             try:
